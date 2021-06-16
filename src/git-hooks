@@ -347,9 +347,15 @@ make_hooks() {
   log debug "Creating directory \"$GIT_HOOKS_TRIGGERS_DIR\""
   mkdir -p "${GIT_HOOKS_TRIGGERS_DIR}"
 
+  case `uname` in
+    MINGW*|MSYS_NT* )
+      triggerScript="#!C:\\Program\ Files\\Git\\bin\\bash.exe\n\ngit-hooks trigger \$(basename \$0) -- \$@";;
+    * )
+      triggerScript="#!/bin/sh\n\ngit-hooks trigger \$(basename \$0) -- \$@"
+  esac
   for name in "${HOOKS_LIST[@]}"; do
     log debug "Writing trigger: $name"
-    echo "#!/bin/sh\n\ngit-hooks trigger \$(basename \$0) -- \$@" > "${GIT_HOOKS_TRIGGERS_DIR}/$name"
+    echo "${triggerScript}" > "${GIT_HOOKS_TRIGGERS_DIR}/$name"
     chmod +x "${GIT_HOOKS_TRIGGERS_DIR}/$name"
   done
 }
