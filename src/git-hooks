@@ -55,6 +55,7 @@ set -o nounset
 if [[ -z "${GIT_HOOKS_TRIGGERS_USER_DIR}" ]]; then
   GIT_HOOKS_TRIGGERS_USER_DIR="~/${GIT_HOOKS_TRIGGERS_DIRNAME}"
 fi
+GIT_REPO_ROOT_DIR=`git rev-parse --show-toplevel 2>/dev/null`
 
 # Verbose mode option. Allowed:
 # `-vv` : verbose mode, show info messages
@@ -443,6 +444,23 @@ trigger_hooks() {
 
       if [[ -d "${item}/${name}.d" ]]; then
         for hook in $(find "${item}/${name}.d" -type f); do
+          execute_hook ${hook} $@
+        done
+      fi
+
+      continue
+    fi
+
+    repoitem="${GIT_REPO_ROOT_DIR}/${item}"
+    if [[ -d ${repoitem} ]]; then
+      log debug "Looking for hooks in the directory: ${repoitem}"
+
+      for hook in $(find ${repoitem} -type f -name "*${name}"); do
+        execute_hook ${hook} $@
+      done
+
+      if [[ -d "${repoitem}/${name}.d" ]]; then
+        for hook in $(find "${repoitem}/${name}.d" -type f); do
           execute_hook ${hook} $@
         done
       fi
